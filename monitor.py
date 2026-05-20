@@ -9,7 +9,7 @@ CHECK_INTERVAL = 60 # secondsdef get_latest_posts(seen_ids):
 feed = feedparser.parse(RSS_URL)
 new_posts = []
 for entry in feed.entries:
-if entry.id not in seen_ids:
+    if entry.id not in seen_ids:
 new_posts.append(entry)
 seen_ids.add(entry.id)
 return new_posts, seen_ids
