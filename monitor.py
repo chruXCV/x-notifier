@@ -10,7 +10,7 @@ feed = feedparser.parse(RSS_URL)
 new_posts = []
 for entry in feed.entries:
     if entry.id not in seen_ids:
-new_posts.append(entry)
+    new_posts.append(entry)
 seen_ids.add(entry.id)
 return new_posts, seen_ids
 def send_telegram(text):
