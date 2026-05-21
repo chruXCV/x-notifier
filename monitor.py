@@ -44,10 +44,17 @@ def format_timestamp(tweet):
         if isinstance(raw, (int, float)):
             dt = datetime.fromtimestamp(raw, tz=timezone.utc)
         else:
-            # Handle ISO string like "2026-05-21T14:30:00.000Z"
-            raw = raw.replace("Z", "+00:00")
-            dt = datetime.fromisoformat(raw)
-        return dt.strftime("%b %d, %Y – %H:%M UTC")
+            # Handle Twitter format: "Thu May 21 17:36:07 +0000 2026"
+            try:
+                dt = datetime.strptime(raw, "%a %b %d %H:%M:%S %z %Y")
+            except ValueError:
+                # Handle ISO string like "2026-05-21T14:30:00.000Z"
+                raw = raw.replace("Z", "+00:00")
+                dt = datetime.fromisoformat(raw)
+        from zoneinfo import ZoneInfo
+        dt_pt = dt.astimezone(ZoneInfo("America/Los_Angeles"))
+        tz_label = "PDT" if dt_pt.dst() else "PST"
+        return dt_pt.strftime(f"%A, %b %d, %Y – %I:%M %p {tz_label}")
     except Exception:
         return str(raw)
 
