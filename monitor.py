@@ -9,6 +9,7 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 GETXAPI_KEY = os.environ["GETXAPI_KEY"]
 TWITTER_USERNAME = "DeItaone"
+DISPLAY_NAME = "Walter Bloomberg"
 SEEN_IDS_FILE = "seen_ids.json"
 
 def get_check_interval():
@@ -121,7 +122,7 @@ def main():
                 text = raw_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 timestamp = format_timestamp(tweet)
                 message = (
-                    f"<b>@{TWITTER_USERNAME}</b>\n\n"
+                    f"<b>{DISPLAY_NAME} (@{TWITTER_USERNAME})</b>\n\n"
                     f"{text}\n\n"
                     f"<code>{timestamp}</code>"
                 )
