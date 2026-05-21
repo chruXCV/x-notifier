@@ -9,7 +9,7 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 GETXAPI_KEY = os.environ["GETXAPI_KEY"]
 TWITTER_USERNAME = "DeItaone"
-DISPLAY_NAME = "Walter Bloomberg"
+DISPLAY_NAME = "*Walter Bloomberg"
 SEEN_IDS_FILE = "seen_ids.json"
 
 def get_check_interval():
