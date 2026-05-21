@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+from datetime import datetime, timezone
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
@@ -33,10 +34,27 @@ def get_latest_tweets(seen_ids):
         print(f"[ERROR] Failed to fetch tweets: {e}")
         return [], seen_ids
 
+def format_timestamp(tweet):
+    # Try common timestamp field names from GetXAPI
+    raw = tweet.get("created_at") or tweet.get("createdAt") or tweet.get("timestamp") or ""
+    if not raw:
+        return "Unknown time"
+    try:
+        # Handle Unix timestamp (integer)
+        if isinstance(raw, (int, float)):
+            dt = datetime.fromtimestamp(raw, tz=timezone.utc)
+        else:
+            # Handle ISO string like "2026-05-21T14:30:00.000Z"
+            raw = raw.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(raw)
+        return dt.strftime("%b %d, %Y – %H:%M UTC")
+    except Exception:
+        return str(raw)
+
 def send_telegram(text):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        response = requests.post(url, data={"chat_id": CHAT_ID, "text": text}, timeout=10)
+        response = requests.post(url, data={"chat_id": CHAT_ID, "text": text, "parse_mode": "HTML"}, timeout=10)
         if not response.ok:
             print(f"[ERROR] Telegram API error: {response.status_code} - {response.text}")
         else:
@@ -61,9 +79,12 @@ def main():
             new_tweets, seen_ids = get_latest_tweets(seen_ids)
             for tweet in reversed(new_tweets):
                 text = tweet.get("text", "")
-                tweet_id = tweet.get("id")
-                link = f"https://x.com/{TWITTER_USERNAME}/status/{tweet_id}"
-                message = f"@{TWITTER_USERNAME}:\n\n{text}\n\n{link}"
+                timestamp = format_timestamp(tweet)
+                message = (
+                    f"<b>@{TWITTER_USERNAME}</b>\n\n"
+                    f"{text}\n\n"
+                    f"🕐 {timestamp}"
+                )
                 send_telegram(message)
                 print(f"Sent: {text[:60]}...")
         except Exception as e:
