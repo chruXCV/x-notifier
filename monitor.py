@@ -81,7 +81,7 @@ def format_timestamp(tweet):
                 dt = datetime.fromisoformat(raw)
         dt_pt = dt.astimezone(ZoneInfo("America/Los_Angeles"))
         tz_label = "PDT" if dt_pt.dst() else "PST"
-        return dt_pt.strftime(f"%A, %b %d, %Y – %I:%M %p {tz_label}")
+        return dt_pt.strftime(f"%a, %m/%d/%Y – %I:%M:%S %p {tz_label}")
     except Exception:
         return str(raw)
 
@@ -117,12 +117,13 @@ def main():
         try:
             new_tweets, seen_ids = get_latest_tweets(seen_ids)
             for tweet in reversed(new_tweets):
-                text = tweet.get("text", "")
+                raw_text = tweet.get("text", "")
+                text = raw_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 timestamp = format_timestamp(tweet)
                 message = (
                     f"<b>@{TWITTER_USERNAME}</b>\n\n"
                     f"{text}\n\n"
-                    f"🕐 {timestamp}"
+                    f"<code>{timestamp}</code>"
                 )
                 send_telegram(message)
                 print(f"Sent: {text[:60]}...")
