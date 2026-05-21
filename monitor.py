@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import requests
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -8,6 +9,7 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 GETXAPI_KEY = os.environ["GETXAPI_KEY"]
 TWITTER_USERNAME = "DeItaone"
+SEEN_IDS_FILE = "seen_ids.json"
 
 def get_check_interval():
     now = datetime.now(ZoneInfo("America/Los_Angeles"))
@@ -24,6 +26,20 @@ def get_check_interval():
         return 60 if hour < 14 else 300
     else:  # Saturday
         return 300
+
+def load_seen_ids():
+    try:
+        with open(SEEN_IDS_FILE, "r") as f:
+            return set(json.load(f))
+    except Exception:
+        return set()
+
+def save_seen_ids(seen_ids):
+    try:
+        with open(SEEN_IDS_FILE, "w") as f:
+            json.dump(list(seen_ids), f)
+    except Exception as e:
+        print(f"[ERROR] Could not save seen_ids: {e}")
 
 def fetch_tweets():
     url = "https://api.getxapi.com/twitter/user/tweets"
@@ -81,16 +97,21 @@ def send_telegram(text):
         print(f"[ERROR] Failed to send Telegram message: {e}")
 
 def main():
-    seen_ids = set()
+    # Load seen_ids from file so restarts don't cause duplicate messages
+    seen_ids = load_seen_ids()
 
-    # Seed seen_ids with current tweets so we only alert on NEW ones
-    try:
-        tweets = fetch_tweets()
-        for tweet in tweets:
-            seen_ids.add(tweet.get("id"))
-        print(f"Bot started. Watching @{TWITTER_USERNAME} for new posts... ({len(seen_ids)} existing tweets seeded)")
-    except Exception as e:
-        print(f"[WARNING] Could not seed initial tweets: {e}. Starting with empty seen list.")
+    # Seed seen_ids with current tweets if starting fresh
+    if not seen_ids:
+        try:
+            tweets = fetch_tweets()
+            for tweet in tweets:
+                seen_ids.add(tweet.get("id"))
+            save_seen_ids(seen_ids)
+            print(f"Bot started. Watching @{TWITTER_USERNAME} for new posts... ({len(seen_ids)} existing tweets seeded)")
+        except Exception as e:
+            print(f"[WARNING] Could not seed initial tweets: {e}. Starting with empty seen list.")
+    else:
+        print(f"Bot started. Watching @{TWITTER_USERNAME} for new posts... ({len(seen_ids)} IDs loaded from memory)")
 
     while True:
         try:
@@ -105,6 +126,8 @@ def main():
                 )
                 send_telegram(message)
                 print(f"Sent: {text[:60]}...")
+            if new_tweets:
+                save_seen_ids(seen_ids)
         except Exception as e:
             print(f"[ERROR] Unexpected error in main loop: {e}")
 
