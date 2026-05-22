@@ -122,7 +122,7 @@ def main():
                 text = raw_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 timestamp = format_timestamp(tweet)
                 message = (
-                    f"<b>{DISPLAY_NAME} (@{TWITTER_USERNAME})</b>\n\n"
+                    f"<b>{DISPLAY_NAME} (&#64;{TWITTER_USERNAME})</b>\n\n"
                     f"{text}\n\n"
                     f"<code>{timestamp}</code>"
                 )
