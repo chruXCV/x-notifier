@@ -98,10 +98,8 @@ def send_telegram(text):
         print(f"[ERROR] Failed to send Telegram message: {e}")
 
 def main():
-    # Load seen_ids from file so restarts don't cause duplicate messages
     seen_ids = load_seen_ids()
 
-    # Seed seen_ids with current tweets if starting fresh
     if not seen_ids:
         try:
             tweets = fetch_tweets()
@@ -122,7 +120,7 @@ def main():
                 text = raw_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 timestamp = format_timestamp(tweet)
                 message = (
-                    f"<b>{DISPLAY_NAME} (&#64;{TWITTER_USERNAME})</b>\n\n"
+                    f"<b>{DISPLAY_NAME} (＠{TWITTER_USERNAME})</b>\n\n"
                     f"{text}\n\n"
                     f"<code>{timestamp}</code>"
                 )
