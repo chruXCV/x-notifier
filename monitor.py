@@ -82,7 +82,7 @@ def format_timestamp(tweet):
                 dt = datetime.fromisoformat(raw)
         dt_pt = dt.astimezone(ZoneInfo("America/Los_Angeles"))
         tz_label = "PDT" if dt_pt.dst() else "PST"
-        return dt_pt.strftime(f"%a, %m/%d/%Y – %I:%M:%S %p {tz_label}")
+        return dt_pt.strftime(f"%a %m/%d/%Y – %H:%M:%S {tz_label}")
     except Exception:
         return str(raw)
 
@@ -124,7 +124,7 @@ def main():
                 message = (
                     f"<b>{DISPLAY_NAME} (@{TWITTER_USERNAME})</b>\n\n"
                     f"{text}\n\n"
-                    f"<code>{timestamp}</code>"
+                    f"<small><code>{timestamp}</code></small>"
                 )
                 send_telegram(message)
                 print(f"Sent: {text[:60]}...")
