@@ -124,7 +124,7 @@ def main():
                 message = (
                     f"<b>{DISPLAY_NAME} (@{TWITTER_USERNAME})</b>\n\n"
                     f"{text}\n\n"
-                    f"<small><code>{timestamp}</code></small>"
+                    f"<code>{timestamp}</code>"
                 )
                 send_telegram(message)
                 print(f"Sent: {text[:60]}...")
