@@ -11,6 +11,7 @@ GETXAPI_KEY = os.environ["GETXAPI_KEY"]
 TWITTER_USERNAME = "DeItaone"
 DISPLAY_NAME = "*Walter Bloomberg"
 SEEN_IDS_FILE = "seen_ids.json"
+SEEN_IDS_MAX = 500
 
 def get_check_interval():
     now = datetime.now(ZoneInfo("America/Los_Angeles"))
@@ -37,21 +38,27 @@ def load_seen_ids():
 
 def save_seen_ids(seen_ids):
     try:
+        trimmed = list(seen_ids)[-SEEN_IDS_MAX:]
         with open(SEEN_IDS_FILE, "w") as f:
-            json.dump(list(seen_ids), f)
+            json.dump(trimmed, f)
     except Exception as e:
         print(f"[ERROR] Could not save seen_ids: {e}")
 
-def fetch_tweets():
+def fetch_tweets(retries=2):
     url = "https://api.getxapi.com/twitter/user/tweets"
     headers = {"Authorization": f"Bearer {GETXAPI_KEY}"}
     params = {"userName": TWITTER_USERNAME}
-    response = requests.get(url, headers=headers, params=params, timeout=10)
-    if not response.ok:
-        print(f"[ERROR] GetXAPI error: {response.status_code} - {response.text}")
-        return []
-    data = response.json()
-    return data.get("tweets", [])
+    for attempt in range(retries + 1):
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=10)
+            if response.ok:
+                return response.json().get("tweets", [])
+            print(f"[ERROR] GetXAPI error: {response.status_code} - {response.text}")
+        except Exception as e:
+            print(f"[ERROR] Fetch attempt {attempt + 1} failed: {e}")
+        if attempt < retries:
+            time.sleep(5)
+    return []
 
 def get_latest_tweets(seen_ids):
     try:
